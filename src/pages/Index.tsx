@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { ScriptInput } from "@/components/ScriptInput";
-import { Timeline } from "@/components/Timeline";
 import { VideoSettings } from "@/components/VideoSettings";
 import { GenerationProgress } from "@/components/GenerationProgress";
-import { ApiKeySettings } from "@/components/ApiKeySettings";
 import { MediaGallery } from "@/components/MediaGallery";
+import { KeywordEditor } from "@/components/KeywordEditor";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { extractKeywords } from "@/utils/scriptAnalysis";
@@ -29,16 +28,25 @@ const Index = () => {
   const [mediaSource, setMediaSource] = useState<'pixabay' | 'pexels' | 'both'>('both');
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'both'>('both');
   const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>([]);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   const [pixabayKey, setPixabayKey] = useState("");
   const [pexelsKey, setPexelsKey] = useState("");
-  
-  const keywords = script ? extractKeywords(script) : [];
-  
-  const { data: mediaItems = [], isLoading } = useQuery({
+
+  const handleScriptChange = (newScript: string) => {
+    setScript(newScript);
+    if (newScript) {
+      const extracted = extractKeywords(newScript);
+      setKeywords(extracted);
+    }
+  };
+
+  const { data: mediaItems = [], isLoading, refetch } = useQuery({
     queryKey: ['media', keywords, mediaSource, mediaType, pixabayKey, pexelsKey],
     queryFn: async () => {
       if (!keywords.length) return [];
+      setIsSearching(true);
       
       const results: MediaItem[] = [];
       const query = keywords.join(' ');
@@ -71,9 +79,11 @@ const Index = () => {
         console.error('Error fetching media:', error);
         toast.error('Failed to fetch media. Please check your API keys.');
         return [];
+      } finally {
+        setIsSearching(false);
       }
     },
-    enabled: Boolean(keywords.length && (pixabayKey || pexelsKey))
+    enabled: false
   });
 
   const handleMediaSelect = (item: MediaItem) => {
@@ -86,12 +96,6 @@ const Index = () => {
     });
   };
 
-  const timelineItems = [
-    { text: "This is the first part of the video", duration: "~2s" },
-    { text: "Here comes the second part", duration: "~3s" },
-    { text: "And finally, the conclusion", duration: "~2s" },
-  ];
-  
   const stages = [
     { 
       name: "Analyzing Script",
@@ -115,16 +119,13 @@ const Index = () => {
       <main className="container mx-auto p-4 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <ScriptInput value={script} onChange={setScript} />
+            <ScriptInput value={script} onChange={handleScriptChange} />
+            <KeywordEditor keywords={keywords} onChange={setKeywords} />
             <VideoSettings
               duration={duration}
               onDurationChange={setDuration}
               format={format}
               onFormatChange={setFormat}
-            />
-            <ApiKeySettings
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
             />
           </div>
           
@@ -162,21 +163,14 @@ const Index = () => {
               </div>
             </div>
             
-            {keywords.length > 0 && (
-              <div className="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
-                <h3 className="text-lg font-medium mb-2">Extracted Keywords</h3>
-                <div className="flex flex-wrap gap-2">
-                  {keywords.map((keyword, index) => (
-                    <span 
-                      key={index}
-                      className="px-2 py-1 bg-red-600/20 text-red-400 rounded-full text-sm"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <Button 
+              className="w-full bg-red-600 hover:bg-red-700 text-white" 
+              size="lg"
+              onClick={() => refetch()}
+              disabled={isLoading || !keywords.length}
+            >
+              Search Media
+            </Button>
             
             {mediaItems.length > 0 && (
               <MediaGallery
@@ -186,16 +180,7 @@ const Index = () => {
               />
             )}
             
-            <Timeline items={timelineItems} />
             <GenerationProgress stages={stages} />
-            
-            <Button 
-              className="w-full bg-red-600 hover:bg-red-700 text-white" 
-              size="lg"
-              disabled={!selectedMedia.length}
-            >
-              Generate Video
-            </Button>
           </div>
         </div>
       </main>
