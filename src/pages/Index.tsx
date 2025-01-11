@@ -4,6 +4,7 @@ import { VideoSettings } from "@/components/VideoSettings";
 import { GenerationProgress } from "@/components/GenerationProgress";
 import { MediaGallery } from "@/components/MediaGallery";
 import { KeywordEditor } from "@/components/KeywordEditor";
+import { ApiKeySettings } from "@/components/ApiKeySettings";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { extractKeywords } from "@/utils/scriptAnalysis";
@@ -126,6 +127,10 @@ const Index = () => {
               onDurationChange={setDuration}
               format={format}
               onFormatChange={setFormat}
+            />
+            <ApiKeySettings 
+              onModelChange={setSelectedModel}
+              selectedModel={selectedModel}
             />
           </div>
           

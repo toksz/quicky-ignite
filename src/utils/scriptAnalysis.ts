@@ -9,8 +9,7 @@ export const extractKeywords = (text: string): string[] => {
     remove_digits: true,
     return_changed_case: true,
     remove_duplicates: true,
-    return_chained_words: true,
-    remove_filters: ["a", "the", "and", "but", "for", "with", "to", "in", "on", "at"]
+    return_chained_words: true
   });
   
   // Filter out very short words and common words
