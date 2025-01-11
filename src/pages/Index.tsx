@@ -4,12 +4,14 @@ import { ScriptInput } from "@/components/ScriptInput";
 import { Timeline } from "@/components/Timeline";
 import { VideoSettings } from "@/components/VideoSettings";
 import { GenerationProgress } from "@/components/GenerationProgress";
+import { ApiKeySettings } from "@/components/ApiKeySettings";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [script, setScript] = useState("");
   const [duration, setDuration] = useState(30);
   const [format, setFormat] = useState<'portrait' | 'landscape'>('portrait');
+  const [selectedModel, setSelectedModel] = useState("Gemini 1.5 Flash");
   
   // Example timeline items
   const timelineItems = [
@@ -38,7 +40,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <Header />
       
       <main className="container mx-auto p-4 space-y-6">
@@ -51,13 +53,20 @@ const Index = () => {
               format={format}
               onFormatChange={setFormat}
             />
+            <ApiKeySettings
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
           </div>
           
           <div className="space-y-6">
             <Timeline items={timelineItems} />
             <GenerationProgress stages={stages} />
             
-            <Button className="w-full" size="lg">
+            <Button 
+              className="w-full bg-red-600 hover:bg-red-700 text-white" 
+              size="lg"
+            >
               Generate Video
             </Button>
           </div>
